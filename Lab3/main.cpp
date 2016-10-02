@@ -60,15 +60,13 @@ struct Mesh {
 };
 
 struct Scene {
-    int numMeshes;
-    Mesh* meshes[5];
+    std::vector<Mesh> meshes;
 };
-
 
 Scene scene;
 int numEdges;
 
-Mesh* leerOFF(const char* filename) {
+Mesh leerOFF(const char* filename) {
     std::ifstream ifs(filename);
 
     //Leer formato
@@ -84,95 +82,93 @@ Mesh* leerOFF(const char* filename) {
     ifs >> nverts >> ntriang >> nedges;
     std::cout << nverts << ntriang << nedges << "\n";
 
-    Mesh* mesh = new Mesh(nverts, ntriang);
-    mesh->center.x = 0.0;
-    mesh->center.y = 0.0;
-    mesh->center.z = 0.0;
+    Mesh mesh(nverts, ntriang);
+    mesh.center.x = 0.0;
+    mesh.center.y = 0.0;
+    mesh.center.z = 0.0;
 
     int i;
     for (i = 0; i < nverts; i++) {
-        ifs >> mesh->vertices[i].x >> mesh->vertices[i].y >> mesh->vertices[i].z;
-        mesh->center.x += mesh->vertices[i].x;
-        mesh->center.y += mesh->vertices[i].y;
-        mesh->center.z += mesh->vertices[i].z;
+        ifs >> mesh.vertices[i].x >> mesh.vertices[i].y >> mesh.vertices[i].z;
+        mesh.center.x += mesh.vertices[i].x;
+        mesh.center.y += mesh.vertices[i].y;
+        mesh.center.z += mesh.vertices[i].z;
     }
 
     for (i = 0; i < ntriang; i++) {
         int nv;
-        ifs >> nv >> mesh->triangles[i].indices[0] >> mesh->triangles[i].indices[1] >> mesh->triangles[i].indices[2];
+        ifs >> nv >> mesh.triangles[i].indices[0] >> mesh.triangles[i].indices[1] >> mesh.triangles[i].indices[2];
     }
 
-    mesh->center.x /= nverts;
-    mesh->center.y /= nverts;
-    mesh->center.z /= nverts;
+    mesh.center.x /= nverts;
+    mesh.center.y /= nverts;
+    mesh.center.z /= nverts;
 
     float maxx = -1.0e-10, maxy = -1.0e-10, maxz = -1.0e-10;
     float minx = 1.0e10, miny = 1.0e10, minz = 1.0e10;
 
-    for (int i = 0; i < mesh->numVertices; i++) {
-        minx = std::min(minx, mesh->vertices[i].x);
-        maxx = std::max(maxx, mesh->vertices[i].x);
-        miny = std::min(miny, mesh->vertices[i].y);
-        maxy = std::max(maxy, mesh->vertices[i].y);
-        minz = std::min(minz, mesh->vertices[i].z);
-        maxz = std::max(maxz, mesh->vertices[i].z);
+    for (int i = 0; i < mesh.numVertices; i++) {
+        minx = std::min(minx, mesh.vertices[i].x);
+        maxx = std::max(maxx, mesh.vertices[i].x);
+        miny = std::min(miny, mesh.vertices[i].y);
+        maxy = std::max(maxy, mesh.vertices[i].y);
+        minz = std::min(minz, mesh.vertices[i].z);
+        maxz = std::max(maxz, mesh.vertices[i].z);
     }
 
     float diag = sqrt((maxx - minx)*(maxx - minx) + (maxy - miny)*(maxy - miny) + (maxz - minz)*(maxz - minz));
-    mesh->scale = 2.0 / diag;
+    mesh.scale = 2.0 / diag;
 
-    mesh->model_transform = glm::mat4(1.0f);
+    mesh.model_transform = glm::mat4(1.0f);
     return mesh;
 }
 
-void init_buffers(Mesh* mesh) {
-    mesh->object_vertices = std::vector<GLfloat>(mesh->numVertices * 3);
-    mesh->object_color = std::vector<GLfloat>(mesh->numVertices * 3);
-    mesh->object_indexes = std::vector<GLushort>(mesh->numTriangles * 3);
+void init_buffers(Mesh& mesh) {
+    mesh.object_vertices = std::vector<GLfloat>(mesh.numVertices * 3);
+    mesh.object_color = std::vector<GLfloat>(mesh.numVertices * 3);
+    mesh.object_indexes = std::vector<GLushort>(mesh.numTriangles * 3);
 
     int i;
 
-    for (i = 0; i < mesh->numVertices; i++) {
-        mesh->object_vertices[3 * i] = mesh->vertices[i].x;
-        mesh->object_vertices[3 * i + 1] = mesh->vertices[i].y;
-        mesh->object_vertices[3 * i + 2] = mesh->vertices[i].z;
+    for (i = 0; i < mesh.numVertices; i++) {
+        mesh.object_vertices[3 * i] = mesh.vertices[i].x;
+        mesh.object_vertices[3 * i + 1] = mesh.vertices[i].y;
+        mesh.object_vertices[3 * i + 2] = mesh.vertices[i].z;
 
-        mesh->object_color[3 * i] = (1.0 * i) / mesh->numVertices;
-        mesh->object_color[3 * i + 1] = 0.8;
-        mesh->object_color[3 * i + 2] = (1.0 * i) / mesh->numVertices;
+        mesh.object_color[3 * i] = (1.0 * i) / mesh.numVertices;
+        mesh.object_color[3 * i + 1] = 0.8;
+        mesh.object_color[3 * i + 2] = (1.0 * i) / mesh.numVertices;
     }
 
-    for (i = 0; i < mesh->numTriangles; i++) {
-        mesh->object_indexes[3 * i] = mesh->triangles[i].indices[0];
-        mesh->object_indexes[3 * i + 1] = mesh->triangles[i].indices[1];
-        mesh->object_indexes[3 * i + 2] = mesh->triangles[i].indices[2];
+    for (i = 0; i < mesh.numTriangles; i++) {
+        mesh.object_indexes[3 * i] = mesh.triangles[i].indices[0];
+        mesh.object_indexes[3 * i + 1] = mesh.triangles[i].indices[1];
+        mesh.object_indexes[3 * i + 2] = mesh.triangles[i].indices[2];
     }
 
-    glGenBuffers(1, &mesh->vbo_object);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_object);
-    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), &(mesh->object_vertices)[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &mesh.vbo_object);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_object);
+    glBufferData(GL_ARRAY_BUFFER, mesh.numVertices * 3 * sizeof(GLfloat), &mesh.object_vertices[0], GL_STATIC_DRAW);
 
 
-    glGenBuffers(1, &mesh->vbo_color);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_color);
-    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), &(mesh->object_color)[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &mesh.vbo_color);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_color);
+    glBufferData(GL_ARRAY_BUFFER, mesh.numVertices * 3 * sizeof(GLfloat), &mesh.object_color[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1, &mesh->ibo_object);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo_object);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->numTriangles * 3 * sizeof(GLushort), &(mesh->object_indexes)[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &mesh.ibo_object);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo_object);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.numTriangles * 3 * sizeof(GLushort), &mesh.object_indexes[0], GL_STATIC_DRAW);
 }
 
 
 bool init_resources() {
+    scene.meshes.push_back(leerOFF("NR34.off"));
+    scene.meshes.push_back(leerOFF("NR0.off"));
 
-    scene.meshes[0] = leerOFF("NR34.off");
-    scene.meshes[1] = leerOFF("NR0.off");
-    scene.numMeshes = 2;
-
-    scene.meshes[0]->model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)) *
+    scene.meshes[0].model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)) *
         glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    scene.meshes[1]->model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+    scene.meshes[1].model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
         glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     init_buffers(scene.meshes[0]);
     init_buffers(scene.meshes[1]);
@@ -189,37 +185,36 @@ bool init_resources() {
 
     glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
     if (!link_ok) {
-        std::cout << "Problemas con el Shader" << std::endl;
+        std::cerr << "Problemas con el Shader\n";
         return false;
     }
 
     attribute_coord = glGetAttribLocation(program, "coord3d");
     if (attribute_coord == -1) {
-        std::cout << "No se puede asociar el atributo coord" << std::endl;
+        std::cerr << "No se puede asociar el atributo coord\n";
         return false;
     }
 
     attribute_color = glGetAttribLocation(program, "color");
     if (attribute_color == -1) {
-        std::cout << "No se puede asociar el atributo color" << std::endl;
+        std::cerr << "No se puede asociar el atributo color\n";
         return false;
     }
 
     uniform_mvp = glGetUniformLocation(program, "mvp");
     if (uniform_mvp == -1) {
-        std::cout << "No se puede asociar el uniform mvp" << std::endl;
+        std::cerr << "No se puede asociar el uniform mvp\n";
         return false;
     }
-
 
     return true;
 }
 
-void graficarObjeto(Mesh* mesh) {
+void graficarObjeto(const Mesh& mesh) {
     //Creamos matrices de modelo, vista y proyeccion
-    glm::mat4 model = mesh->model_transform *
-        glm::scale(glm::mat4(1.0f), glm::vec3(mesh->scale, mesh->scale, mesh->scale)) *
-        glm::translate(glm::mat4(1.0f), glm::vec3(-mesh->center.x, -mesh->center.y, -mesh->center.z));
+    glm::mat4 model = mesh.model_transform *
+        glm::scale(glm::mat4(1.0f), glm::vec3(mesh.scale, mesh.scale, mesh.scale)) *
+        glm::translate(glm::mat4(1.0f), glm::vec3(-mesh.center.x, -mesh.center.y, -mesh.center.z));
 
     glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     //glm::mat4 projection = glm::perspective(45.0f, 1.0f*screen_width/screen_height, 0.1f, 10.0f);
@@ -232,7 +227,7 @@ void graficarObjeto(Mesh* mesh) {
     glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glEnableVertexAttribArray(attribute_coord);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_object);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_object);
 
     glVertexAttribPointer(
         attribute_coord,
@@ -243,7 +238,7 @@ void graficarObjeto(Mesh* mesh) {
     );
 
     glEnableVertexAttribArray(attribute_color);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_color);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_color);
 
     glVertexAttribPointer(
         attribute_color,
@@ -255,7 +250,7 @@ void graficarObjeto(Mesh* mesh) {
 
 
     //Dibujar las primitivas
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo_object);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo_object);
     int size;   glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
     //Dibujar los triánglos
@@ -269,9 +264,9 @@ void onDisplay() {
 
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    for (int i = 0; i < scene.numMeshes; i++)
-        graficarObjeto(scene.meshes[i]);
+    for (auto mesh : scene.meshes) {
+        graficarObjeto(mesh);
+    }
 
     glutSwapBuffers();
 }
@@ -285,12 +280,10 @@ void onReshape(int w, int h) {
 
 void free_resources() {
     glDeleteProgram(program);
-
-    for (int i = 0; i < scene.numMeshes; i++) {
-        glDeleteBuffers(1, &scene.meshes[i]->vbo_object);
-        glDeleteBuffers(1, &scene.meshes[i]->ibo_object);
-        glDeleteBuffers(1, &scene.meshes[i]->vbo_color);
-        delete scene.meshes[i];
+    for (auto mesh : scene.meshes) {
+        glDeleteBuffers(1, &mesh.vbo_object);
+        glDeleteBuffers(1, &mesh.ibo_object);
+        glDeleteBuffers(1, &mesh.vbo_color);
     }
 }
 
