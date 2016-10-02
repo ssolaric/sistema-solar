@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <fstream>
 #include <string>
 #include <cstdlib>
@@ -34,8 +35,8 @@ struct Mesh {
     //Informacion de estructura
     int numVertices;
     int numTriangles;
-    Vertex* vertices;
-    Triangle* triangles;
+    std::vector<Vertex> vertices;
+    std::vector<Triangle> triangles;
 
     //Información para transformación inicial
     Vertex center;
@@ -45,14 +46,17 @@ struct Mesh {
     glm::mat4 model_transform;
 
     //Buffers para graficado
-    GLfloat* object_vertices;
-    GLfloat* object_color;
-    GLushort* object_indexes;
+    std::vector<GLfloat> object_vertices;
+    std::vector<GLfloat> object_color;
+    std::vector<GLushort> object_indexes;
 
     //Ids para buffers
     GLuint vbo_object;
     GLuint vbo_color;
     GLuint ibo_object;
+
+    Mesh(int nverts, int ntriang): numVertices(nverts), numTriangles(ntriang), vertices(numVertices), triangles(numTriangles) {
+    }
 };
 
 struct Scene {
@@ -80,12 +84,7 @@ Mesh* leerOFF(const char* filename) {
     ifs >> nverts >> ntriang >> nedges;
     std::cout << nverts << ntriang << nedges << "\n";
 
-    Mesh* mesh = new Mesh;
-    mesh->numVertices = nverts;
-    mesh->numTriangles = ntriang;
-
-    mesh->vertices = new Vertex[nverts];
-    mesh->triangles = new Triangle[ntriang];
+    Mesh* mesh = new Mesh(nverts, ntriang);
     mesh->center.x = 0.0;
     mesh->center.y = 0.0;
     mesh->center.z = 0.0;
@@ -127,9 +126,9 @@ Mesh* leerOFF(const char* filename) {
 }
 
 void init_buffers(Mesh* mesh) {
-    mesh->object_vertices = new GLfloat[mesh->numVertices * 3];
-    mesh->object_color = new GLfloat[mesh->numVertices * 3];
-    mesh->object_indexes = new GLushort[mesh->numTriangles * 3];
+    mesh->object_vertices = std::vector<GLfloat>(mesh->numVertices * 3);
+    mesh->object_color = std::vector<GLfloat>(mesh->numVertices * 3);
+    mesh->object_indexes = std::vector<GLushort>(mesh->numTriangles * 3);
 
     int i;
 
@@ -139,8 +138,8 @@ void init_buffers(Mesh* mesh) {
         mesh->object_vertices[3 * i + 2] = mesh->vertices[i].z;
 
         mesh->object_color[3 * i] = (1.0 * i) / mesh->numVertices;
-        mesh->object_color[3 * i + 1] = (1.0 * i) / mesh->numVertices;
-        mesh->object_color[3 * i + 2] = 0.8;
+        mesh->object_color[3 * i + 1] = 0.8;
+        mesh->object_color[3 * i + 2] = (1.0 * i) / mesh->numVertices;
     }
 
     for (i = 0; i < mesh->numTriangles; i++) {
@@ -151,16 +150,16 @@ void init_buffers(Mesh* mesh) {
 
     glGenBuffers(1, &mesh->vbo_object);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_object);
-    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), mesh->object_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), &(mesh->object_vertices)[0], GL_STATIC_DRAW);
 
 
     glGenBuffers(1, &mesh->vbo_color);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_color);
-    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), mesh->object_color, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mesh->numVertices * 3 * sizeof(GLfloat), &(mesh->object_color)[0], GL_STATIC_DRAW);
 
     glGenBuffers(1, &mesh->ibo_object);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo_object);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->numTriangles * 3 * sizeof(GLushort), mesh->object_indexes, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->numTriangles * 3 * sizeof(GLushort), &(mesh->object_indexes)[0], GL_STATIC_DRAW);
 }
 
 
@@ -291,11 +290,6 @@ void free_resources() {
         glDeleteBuffers(1, &scene.meshes[i]->vbo_object);
         glDeleteBuffers(1, &scene.meshes[i]->ibo_object);
         glDeleteBuffers(1, &scene.meshes[i]->vbo_color);
-        delete[] scene.meshes[i]->object_vertices;
-        delete[] scene.meshes[i]->object_indexes;
-        delete[] scene.meshes[i]->object_color;
-        delete[] scene.meshes[i]->vertices;
-        delete[] scene.meshes[i]->triangles;
         delete scene.meshes[i];
     }
 }
