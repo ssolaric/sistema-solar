@@ -28,6 +28,12 @@
     <None Include="NR34.off">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="sphere.off">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cubo.off">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="shader_utils.cpp">

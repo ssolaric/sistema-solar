@@ -144,9 +144,11 @@
   <ItemGroup>
     <None Include="basic3.f.glsl" />
     <None Include="basic3.v.glsl" />
+    <None Include="cubo.off" />
     <None Include="NR0.off" />
     <None Include="NR34.off" />
     <None Include="packages.config" />
+    <None Include="sphere.off" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
