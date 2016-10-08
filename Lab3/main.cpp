@@ -22,10 +22,10 @@ GLint attribute_coord;
 GLint attribute_color;
 GLint uniform_mvp;
 
-float alfa = 10;
-float beta = 20;
-float theta = 25;
-float phi = 20;
+float alfa = 10.0f;
+float beta = 20.0f;
+float theta = 25.0f;
+float phi = 20.0f;
 
 int screen_width = 800, screen_height = 800;
 
@@ -61,7 +61,7 @@ struct Mesh {
     GLuint vbo_color;
     GLuint ibo_object;
 
-    Mesh(int nverts, int ntriang): numVertices(nverts), numTriangles(ntriang), vertices(numVertices), triangles(numTriangles) {
+    Mesh(int nverts, int ntriang) : numVertices(nverts), numTriangles(ntriang), vertices(numVertices), triangles(numTriangles) {
     }
 };
 
@@ -122,8 +122,8 @@ Mesh leerOFF(const char* filename) {
     mesh.centro = glm::vec3(cx, cy, cz);
     std::cout << cx << " " << cy << " " << cz << "\n";
 
-    float maxx = -1.0e-10, maxy = -1.0e-10, maxz = -1.0e-10;
-    float minx = 1.0e10, miny = 1.0e10, minz = 1.0e10;
+    float maxx = -1.0e-10f, maxy = -1.0e-10f, maxz = -1.0e-10f;
+    float minx = 1.0e10f, miny = 1.0e10f, minz = 1.0e10f;
 
     for (int i = 0; i < mesh.numVertices; i++) {
         minx = std::min(minx, mesh.vertices[i].x);
@@ -135,7 +135,7 @@ Mesh leerOFF(const char* filename) {
     }
 
     float diag = sqrt((maxx - minx)*(maxx - minx) + (maxy - miny)*(maxy - miny) + (maxz - minz)*(maxz - minz));
-    mesh.scale = 2.0 / diag;
+    mesh.scale = 2.0f / diag;
 
     mesh.model_transform = glm::mat4(1.0f);
     return mesh;
@@ -153,9 +153,9 @@ void init_buffers(Mesh& mesh) {
         mesh.object_vertices[3 * i + 1] = mesh.vertices[i].y;
         mesh.object_vertices[3 * i + 2] = mesh.vertices[i].z;
 
-        mesh.object_color[3 * i] = (1.0 * i) / mesh.numVertices;
-        mesh.object_color[3 * i + 1] = (1.0 * i) / mesh.numVertices;
-        mesh.object_color[3 * i + 2] = 0.8;
+        mesh.object_color[3 * i] = (1.0f * i) / mesh.numVertices;
+        mesh.object_color[3 * i + 1] = (1.0f * i) / mesh.numVertices;
+        mesh.object_color[3 * i + 2] = 0.8f;
     }
 
     for (i = 0; i < mesh.numTriangles; i++) {
@@ -180,13 +180,13 @@ void init_buffers(Mesh& mesh) {
 
 
 bool init_resources() {
-    Mesh esfera = leerOFF("cubo.off");
+    Mesh esfera = leerOFF("sphere.off");
     scene.meshes.push_back(esfera);
     scene.meshes.push_back(esfera);
     scene.meshes.push_back(esfera);
 
     scene.meshes[1].model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 0.0f, 0.0f))
-        /** glm::scale(glm::mat4(1.0f), glm::vec3(0.4f, 0.4f, 0.4f))*/;
+        * glm::scale(glm::mat4(1.0f), glm::vec3(0.4f, 0.4f, 0.4f));
 
     scene.meshes[2].model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(6.0f, 0.0f, 0.0f)) *
         glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
@@ -198,7 +198,7 @@ bool init_resources() {
     centrar(scene.meshes[2]);
 
     // Por cada transformación o conjunto de transformaciones hechas a los objetos, tengo que mover el centro hacia el centro actual del objeto.
-    // Esta transformación no siempre será la misma que se le aplicó al objeto (se verá en onIdle el porqué de esto).
+    // Esta transformación no siempre será la misma que se le aplicó al objeto.
     // En este caso en el que aún no hay animación, sí transformamos el centro igual que el objeto.
     moverCentro(scene.meshes[1].model_transform, scene.meshes[1]);
     moverCentro(scene.meshes[1].model_transform, scene.meshes[2]);
@@ -272,7 +272,7 @@ void graficarObjeto(const Mesh& mesh) {
 
     //Dibujar las primitivas
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo_object);
-    int size;   
+    int size;
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
     //Dibujar los triánglos
@@ -286,10 +286,10 @@ void onIdle() {
     Mesh& sol = scene.meshes[0];
     Mesh& tierra = scene.meshes[1];
     Mesh& luna = scene.meshes[2];
-    float tierraAlrededorSol = glm::radians(alfa) / 100.0f;
-    float tierraAlrededorSuEje = glm::radians(beta) / 100.0f;
-    float lunaAlrededorTierra = glm::radians(theta) / 100.0f;
-    float lunaAlrededorSuEje = glm::radians(phi) / 100.0f;
+    float tierraAlrededorSol = glm::radians(alfa) / 500.0f;
+    float tierraAlrededorSuEje = glm::radians(beta) / 500.0f;
+    float lunaAlrededorTierra = glm::radians(theta) / 500.0f;
+    float lunaAlrededorSuEje = glm::radians(phi) / 500.0f;
 
     glm::mat4 rotarTierraAlrededorSol = glm::rotate(glm::mat4(), tierraAlrededorSol, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -301,15 +301,30 @@ void onIdle() {
         glm::translate(glm::mat4(), -tierra.centro);
 
     // NO OLVIDAR: la matriz de transformación SIEMPRE VA ANTES QUE LA MATRIZ QUE REPRESENTA EL MODELO.
-    tierra.model_transform =
-        rotarTierraAlrededorSol *
-        rotarTierraAlrededorSuEje *
-        tierra.model_transform;
+    glm::mat4 transformacionTierra = rotarTierraAlrededorSol * rotarTierraAlrededorSuEje;
+    tierra.model_transform = transformacionTierra * tierra.model_transform;
 
-    // En este caso, la transformación a hacer sobre el centro es solo la de rotación alrededor del Sol. No tiene sentido aplicarle toda la transformación actual del
-    // modelo de la Tierra, ya que no conozco su estado actual (¿qué hará esa matriz sobre el centro anterior?, pero sí conozco cómo debo mover el centro (solo seguir
-    // el movimiento de rotación alrededor del Sol).
-    moverCentro(rotarTierraAlrededorSol, tierra);
+    // Se le aplica al centro la misma transformación que a la Tierra. NO ES LO MISMO que aplicarle el model_transform de la Tierra a su centro.
+    moverCentro(transformacionTierra, tierra);
+
+    glm::mat4 moverLunaAlOrigen = glm::translate(glm::mat4(), -luna.centro);
+    glm::mat4 rotarLunaAlrededorSuEje = glm::rotate(glm::mat4(), lunaAlrededorSuEje, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::vec3 direccionCentroTierra = glm::normalize(tierra.centro);
+
+    glm::mat4 mover1HaciaTierra = glm::translate(glm::mat4(), 1.0f * direccionCentroTierra);
+    glm::mat4 rotarAnguloLunaAlrededorTierra = glm::rotate(glm::mat4(), lunaAlrededorTierra, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 moverAPosicionFinal = glm::translate(glm::mat4(), 4.0f * direccionCentroTierra);
+
+    glm::mat4 transformacionLuna = moverAPosicionFinal *
+        rotarAnguloLunaAlrededorTierra *
+        mover1HaciaTierra *
+        rotarLunaAlrededorSuEje *
+        moverLunaAlOrigen;
+
+    luna.model_transform = transformacionLuna * luna.model_transform;
+
+    moverCentro(transformacionLuna, luna);
 
     // glutPostRedisplay(): tells GLUT to schedule a call to your display function once all the events are processed and before your idle function is called
     glutPostRedisplay();
