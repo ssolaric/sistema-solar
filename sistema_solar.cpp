@@ -16,15 +16,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "shader_utils.h"
-#include "auxilar.h"
-
-int screen_width = 800, screen_height = 800;
-
-bool init_resources();
-void onDisplay();
-void onReshape(int width, int height);
-void onIdle();
-void free_resources();
+#include "auxiliar.h"
+#include "solucion.h"
 
 int main(int argc, char* argv[]) {
     glutInit(&argc, argv);
