@@ -35,3 +35,7 @@ struct Mesh {
     Mesh(int nverts, int ntriang) : numVertices(nverts), numTriangles(ntriang), vertices(numVertices), triangles(numTriangles) {
     }
 };
+
+struct Scene {
+    std::vector<Mesh> meshes;
+};
