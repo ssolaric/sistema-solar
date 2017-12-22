@@ -1,6 +1,8 @@
 #pragma once
+#include "auxiliar.h"
 
-int screen_width = 800, screen_height = 800;
+extern int screen_width;
+extern int screen_height;
 
 bool init_resources();
 void onDisplay();
