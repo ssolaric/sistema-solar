@@ -38,17 +38,17 @@ struct Triangle {
 };
 
 struct Mesh {
-    //Informacion de estructura
+    //InformaciÃ³n de estructura
     int numVertices;
     int numTriangles;
     std::vector<Vertex> vertices;
     std::vector<Triangle> triangles;
 
-    //Información para transformación inicial
+    //InformaciÃ³n para transformaciÃ³n inicial
     glm::vec3 centro;
     float scale;
 
-    //Matriz de transformación
+    //Matriz de transformaciÃ³n
     glm::mat4 model_transform;
 
     //Buffers para graficado
@@ -191,15 +191,15 @@ bool init_resources() {
     scene.meshes[2].model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(6.0f, 0.0f, 0.0f)) *
         glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 
-    // Aquí aplico la transformación de mover el objeto al centro y escalarlo enseñada en clase.
+    // AquÃ­ aplico la transformaciÃ³n de mover el objeto al centro y escalarlo enseÃ±ada en clase.
     // La hago fuera del onDisplay porque solo es necesaria al inicio.
     centrar(scene.meshes[0]);
     centrar(scene.meshes[1]);
     centrar(scene.meshes[2]);
 
-    // Por cada transformación o conjunto de transformaciones hechas a los objetos, tengo que mover el centro hacia el centro actual del objeto.
-    // Esta transformación no siempre será la misma que se le aplicó al objeto.
-    // En este caso en el que aún no hay animación, sí transformamos el centro igual que el objeto.
+    // Por cada transformaciÃ³n o conjunto de transformaciones hechas a los objetos, tengo que mover el centro hacia el centro actual del objeto.
+    // Esta transformaciÃ³n no siempre serÃ¡ la misma que se le aplicÃ³ al objeto.
+    // En este caso en el que aÃºn no hay animaciÃ³n, sÃ­ transformamos el centro igual que el objeto.
     moverCentro(scene.meshes[1].model_transform, scene.meshes[1]);
     moverCentro(scene.meshes[1].model_transform, scene.meshes[2]);
 
@@ -248,7 +248,7 @@ bool init_resources() {
 
 
 void graficarObjeto(const Mesh& mesh) {
-    //Creamos matrices de modelo, vista y proyeccion
+    //Creamos matrices de modelo, vista y proyecciÃ³n
     glm::mat4 model = mesh.model_transform;
 
     glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -275,7 +275,7 @@ void graficarObjeto(const Mesh& mesh) {
     int size;
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
-    //Dibujar los triánglos
+    //Dibujar los triÃ¡ngulos
     glDrawElements(GL_TRIANGLES, size / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
     glDisableVertexAttribArray(attribute_coord);
@@ -294,17 +294,17 @@ void onIdle() {
     glm::mat4 rotarTierraAlrededorSol = glm::rotate(glm::mat4(), tierraAlrededorSol, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // A diferencia de otras transformaciones, en donde la matriz que las representa es constante, en este caso la matriz depende
-    // de la posición actual del centro de la Tierra. Por lo tanto, en cada "iteración" (cada vez que se llama a onIdle), hay que
-    // actualizar el centro de la Tierra, como se verá más abajo.
+    // de la posiciï¿½n actual del centro de la Tierra. Por lo tanto, en cada "iteraciï¿½n" (cada vez que se llama a onIdle), hay que
+    // actualizar el centro de la Tierra, como se verï¿½ mï¿½s abajo.
     glm::mat4 rotarTierraAlrededorSuEje = glm::translate(glm::mat4(), tierra.centro) *
         glm::rotate(glm::mat4(), tierraAlrededorSuEje, glm::vec3(0.0f, 1.0f, 0.0f)) *
         glm::translate(glm::mat4(), -tierra.centro);
 
-    // NO OLVIDAR: la matriz de transformación SIEMPRE VA ANTES QUE LA MATRIZ QUE REPRESENTA EL MODELO.
+    // NO OLVIDAR: la matriz de transformaciï¿½n SIEMPRE VA ANTES QUE LA MATRIZ QUE REPRESENTA EL MODELO.
     glm::mat4 transformacionTierra = rotarTierraAlrededorSol * rotarTierraAlrededorSuEje;
     tierra.model_transform = transformacionTierra * tierra.model_transform;
 
-    // Se le aplica al centro la misma transformación que a la Tierra. NO ES LO MISMO que aplicarle el model_transform de la Tierra a su centro.
+    // Se le aplica al centro la misma transformaciï¿½n que a la Tierra. NO ES LO MISMO que aplicarle el model_transform de la Tierra a su centro.
     moverCentro(transformacionTierra, tierra);
 
     glm::mat4 moverLunaAlOrigen = glm::translate(glm::mat4(), -luna.centro);
@@ -364,12 +364,12 @@ int main(int argc, char* argv[]) {
 
     GLenum glew_status = glewInit();
     if (glew_status != GLEW_OK) {
-        std::cout << "Error inicializando GLEW" << std::endl;
+        std::cout << "Error inicializando GLEW\n";
         exit(EXIT_FAILURE);
     }
 
     if (!GLEW_VERSION_2_0) {
-        std::cout << "Tu tarjeta grafica no soporta OpenGL 2.0" << std::endl;
+        std::cout << "Tu tarjeta grÃ¡fica no soporta OpenGL 2.0\n";
         exit(EXIT_FAILURE);
     }
 
