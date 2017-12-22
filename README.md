@@ -1,3 +1,7 @@
 # Sistema solar
 
-Lab3 de Gr·ficos en ComputaciÛn 2016-2
+Lab3 de Gr√°ficos en Computaci√≥n 2016-2
+
+``` Bash
+g++ main.cpp shader_utils.cpp -Iglm-0.9.8.5 -lGL -lGLEW -lglut
+```
